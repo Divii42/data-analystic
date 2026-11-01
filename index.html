@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sales Analytics Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%237257e8'/%3E%3Ctext x='16' y='23' font-size='20' font-weight='700' text-anchor='middle' fill='white' font-family='sans-serif'%3ES%3C/text%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+</head>
+<body id="top">
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand"><span class="brand-mark">S</span><span>Sales<span class="brand-light">Pulse</span></span></div>
+      <div class="nav-label">WORKSPACE</div>
+      <a class="nav-item active" href="#top"><span>▦</span> Overview</a>
+      <a class="nav-item" href="#sales-table"><span>▤</span> Transactions</a>
+      <a class="nav-item" href="#insights"><span>◷</span> Insights</a>
+      <div class="sidebar-bottom">
+        <div class="help-card"><div class="help-icon">?</div><strong>Need a hand?</strong><p>Upload your own CSV to explore your sales performance.</p></div>
+        <div class="profile"><div class="avatar">AD</div><div><strong>Admin User</strong><small>Workspace owner</small></div><span class="dots">•••</span></div>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <div><div class="eyebrow">ANALYTICS / OVERVIEW</div><h1>Sales Overview</h1><p class="subtitle">Track performance and understand what's driving your revenue.</p></div>
+        <div class="top-actions">
+          <label class="upload-btn" for="csv-upload">↑ <span>Import CSV</span></label>
+          <input id="csv-upload" type="file" accept=".csv,text/csv" hidden />
+          <button id="sample-btn" class="export-btn" type="button">↺ <span>Sample data</span></button>
+          <button id="export-btn" class="export-btn" type="button">↓ <span>Export report</span></button>
+        </div>
+      </header>
+
+      <section class="filter-bar">
+        <div class="filter-title"><span class="filter-symbol">☷</span> Filters</div>
+        <label>Period<select id="period-filter"><option value="all">All time</option><option value="30">Last 30 days</option><option value="90">Last 90 days</option><option value="365">Last 12 months</option></select></label>
+        <label>Region<select id="region-filter"><option value="all">All regions</option></select></label>
+        <label>Category<select id="category-filter"><option value="all">All categories</option></select></label>
+        <button id="reset-btn" class="reset-btn">Reset filters</button>
+        <div class="updated">● <span id="record-count">0</span> records</div>
+      </section>
+
+      <section class="kpi-grid">
+        <article class="kpi-card"><div class="kpi-top"><span>Total revenue</span><span class="kpi-icon purple">$</span></div><div class="kpi-value" id="total-revenue">$0</div><div class="kpi-foot"><span class="positive">↗ Total</span><span>Gross sales</span></div></article>
+        <article class="kpi-card"><div class="kpi-top"><span>Orders</span><span class="kpi-icon blue">▤</span></div><div class="kpi-value" id="total-orders">0</div><div class="kpi-foot"><span class="neutral">All statuses</span><span>Transactions</span></div></article>
+        <article class="kpi-card"><div class="kpi-top"><span>Average order value</span><span class="kpi-icon orange">◈</span></div><div class="kpi-value" id="avg-order">$0</div><div class="kpi-foot"><span class="neutral">Revenue / orders</span><span>Per order</span></div></article>
+        <article class="kpi-card"><div class="kpi-top"><span>Units sold</span><span class="kpi-icon green">↗</span></div><div class="kpi-value" id="units-sold">0</div><div class="kpi-foot"><span class="positive">Items moved</span><span>Quantity</span></div></article>
+      </section>
+
+      <section class="charts-grid" id="insights">
+        <article class="panel revenue-panel"><div class="panel-heading"><div><h2>Revenue trend</h2><p>Sales performance over time</p></div><span class="panel-tag">Revenue</span></div><div class="chart-wrap"><canvas id="revenue-chart"></canvas></div></article>
+        <article class="panel"><div class="panel-heading"><div><h2>Sales by category</h2><p>Revenue contribution</p></div><button class="more-btn" aria-label="More options">•••</button></div><div class="donut-wrap"><canvas id="category-chart"></canvas></div><div id="category-legend" class="category-legend"></div></article>
+      </section>
+
+      <section class="lower-grid">
+        <article class="panel"><div class="panel-heading"><div><h2>Revenue by region</h2><p>Compare regional performance</p></div></div><div class="chart-wrap region-chart"><canvas id="region-chart"></canvas></div></article>
+        <article class="panel"><div class="panel-heading"><div><h2>Top products</h2><p>Best performers by revenue</p></div><span class="panel-tag">Top 5</span></div><div id="top-products" class="top-products"></div></article>
+      </section>
+
+      <section class="panel table-panel" id="sales-table"><div class="panel-heading table-heading"><div><h2>Recent transactions</h2><p>Review individual sales records</p></div><input id="search-input" class="search-input" aria-label="Search transactions" placeholder="⌕  Search transactions..." /></div>
+        <div class="table-scroll"><table><thead><tr><th>ORDER ID</th><th>DATE</th><th>PRODUCT</th><th>CATEGORY</th><th>REGION</th><th>UNITS</th><th>REVENUE</th></tr></thead><tbody id="sales-tbody"></tbody></table></div>
+        <div class="table-footer"><span id="table-summary">Showing 0 transactions</span><div class="pagination"><button id="prev-page">‹</button><span id="page-label">1 / 1</span><button id="next-page">›</button></div></div>
+      </section>
+      <footer>SalesPulse Analytics <span>•</span> Demo dashboard · Import a CSV to use your own data</footer>
+    </main>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>
